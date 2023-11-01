@@ -41,7 +41,7 @@ def getSortableTime(timestamp):
     return datetime_obj.strftime(sortableTimestamp_fmt)
 
 async def generate_report(report_id):
-    reprot_fields = ['store_id', 'uptime_last_hour', 'uptime_last_day', 'uptime_last_week', 'downtime_last_hour', 'downtime_last_day', 'downtime_last_week']  
+    report_fields = ['store_id', 'uptime_last_hour', 'uptime_last_day', 'uptime_last_week', 'downtime_last_hour', 'downtime_last_day', 'downtime_last_week']  
     report_rows = []
     print("loop starting")
     with sql.connect("StoreDatabase.db") as con:
@@ -81,8 +81,8 @@ async def generate_report(report_id):
                         startTimePerDay[i] = 000000
                         endTimePerDay[i] = 000000
                 
-                print(startTimePerDay)
-                print(endTimePerDay)
+                # print(startTimePerDay)
+                # print(endTimePerDay)
 
                 query1 = """
                     SELECT timestamp_utc, getDayOfWeek(timestamp_utc) AS day, getTime(timestamp_utc) AS time, status
@@ -146,15 +146,15 @@ async def generate_report(report_id):
                 uptime_PastDay, downtime_PastDay = getUptime(businessTimestampsPastDay)
                 uptime_PastWeek, downtime_PastWeek = getUptime(businessTimestampsPastWeek)
                 
-                report_rows.append((store['store_id'],uptime_PastHour ,uptime_PastDay, uptime_PastWeek, downtime_PastHour, downtime_PastDay, downtime_PastWeek))
+                report_rows.append([store['store_id'],uptime_PastHour ,uptime_PastDay, uptime_PastWeek, downtime_PastHour, downtime_PastDay, downtime_PastWeek])
             except:
                 print("exception")
         print("saving file")
 
         # save CSV
         with open("store_uptime.csv", 'w') as csvfile:  
-            writer = csv.DictWriter(csvfile, fieldnames = reprot_fields)  
-            writer.writeheader()  
+            writer = csv.writer(csvfile) 
+            writer.writerow(report_fields)  
             writer.writerows(report_rows)  
         
         cur.execute("UPDATE ReportStatus SET status = '{}' WHERE reportId = '{}'".format("completed",str(report_id)))
